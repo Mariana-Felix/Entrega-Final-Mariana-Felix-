@@ -1,13 +1,15 @@
 import os
-import random
-import string
+from datetime import date
 from django.shortcuts import render
 from django.db.models import Q
 from django.forms.models import model_to_dict
+from django.http import HttpResponse
+
 from django.contrib.auth.decorators import login_required
 
-from app_coder.models import Course, Student, Profesor, Homework, Avatar
-from app_coder.forms import CourseForm, ProfesorForm, HomeworkForm, AvatarForm
+from app_coder.models import Articles, Comments, Avatar
+from django.contrib.auth.models import User
+from app_coder.forms import ArticlesForm, CommentsForm, AvatarForm
 
 from django.contrib import messages
 
@@ -28,71 +30,41 @@ def get_avatar_url_ctx(request):
         return {"url": avatars[0].image.url}
     return {}
 
-def profesors(request):
-    profesors = Profesor.objects.all()
+def articles(request):
+    articles = Articles.objects.all()
 
     context_dict = {
-        'profesors': profesors
+        'articles': articles
     }
 
     return render(
         request=request,
         context=context_dict,
-        template_name="app_coder/profesors.html"
+        template_name="app_coder/articles.html"
     )
 
-
-def courses(request):
-    courses = Course.objects.all()
+def comments(request):
+    comments = Comments.objects.all()
 
     context_dict = {
-        'courses': courses
+        'comments': comments
     }
 
     return render(
         request=request,
         context=context_dict,
-        template_name="app_coder/courses.html"
+        template_name="app_coder/comments.html"
     )
-
-
-def students(request):
-    students = Student.objects.all()
-
-    context_dict = {
-        'students': students
-    }
-
-    return render(
-        request=request,
-        context=context_dict,
-        template_name="app_coder/students.html"
-    )
-
-
-def homeworks(request):
-    homeworks = Homework.objects.all()
-
-    context_dict = {
-        'homeworks': homeworks
-    }
-
-    return render(
-        request=request,
-        context=context_dict,
-        template_name="app_coder/homeworks.html"
-    )
-
 
 def form_hmtl(request):
 
     if request.method == 'POST':
-        course = Course(name=request.POST['name'], code=request.POST['code'])
-        course.save()
+        article = Articles(title=request.POST['title'], sub_title=request.POST['subtitle'])
+        article.save()
 
-        courses = Course.objects.all()
+        articles = Articles.objects.all()
         context_dict = {
-            'courses': courses
+            'articles': articles
         }
 
         return render(
@@ -106,170 +78,217 @@ def form_hmtl(request):
         template_name='app_coder/formHTML.html'
     )
 
-
-def course_forms_django(request):
+@login_required
+def articles_forms_django(request):
     if request.method == 'POST':
-        course_form = CourseForm(request.POST)
-        if course_form.is_valid():
-            data = course_form.cleaned_data
-            course = Course(name=data['name'], code=data['code'])
-            course.save()
+        article_form = ArticlesForm(request.POST, request.FILES)
 
-            courses = Course.objects.all()
+        if article_form.is_valid():
+            data = article_form.cleaned_data
+            articles = Articles(title=data['title'], sub_title=data['sub_title'], text = data ['text'],author = data['author'])
+
+            image = request.FILES['image']
+            if len(request.FILES) != 0:
+                articles.image = image
+            articles.save()
+
+            articles = Articles.objects.all()
             context_dict = {
-                'courses': courses
+                'articles': articles
             }
             return render(
                 request=request,
                 context=context_dict,
-                template_name="app_coder/courses.html"
+                template_name="app_coder/articles.html"
             )
 
-    course_form = CourseForm(request.POST)
+    article_form = ArticlesForm(request.POST)
     context_dict = {
-        'course_form': course_form
+        'article_form': article_form
     }
     return render(
         request=request,
         context=context_dict,
-        template_name='app_coder/course_django_forms.html'
+        template_name='app_coder/article_django_forms.html'
     )
-
-
+      
 @login_required
-def profesor_forms_django(request):
+def update_article(request, pk: int):
+    article = Articles.objects.get(pk=pk)
+
     if request.method == 'POST':
-        profesor_form = ProfesorForm(request.POST)
-        if profesor_form.is_valid():
-            data = profesor_form.cleaned_data
+        article_form = ArticlesForm(request.POST)
+        if article_form.is_valid():
+            data = article_form.cleaned_data
+            article.title = data['title']
+            article.sub_title = data['sub_title']
+            article.tect = data['text']
+            article.save()
 
-            # Una pequeña muestra de procesos de unit test
-            KEY_LEN = 20
-            char_list = [random.choice((string.ascii_letters + string.digits)) for _ in range(KEY_LEN)]
-            mock_name = ''.join(char_list)
-            print(f'----------> Prueba con: {mock_name}')
-
-            profesor = Profesor(
-                name=mock_name,
-                last_name=data['last_name'],
-                email=data['email'],
-                profession=data['profession'],
-            )
-            profesor.save()
-
-            profesors = Profesor.objects.all()
+            articles = Articles.objects.all()
             context_dict = {
-                'profesors': profesors
+                'articles': articles
             }
             return render(
                 request=request,
                 context=context_dict,
-                template_name="app_coder/profesors.html"
+                template_name="app_coder/articles.html"
             )
 
-    profesor_form = ProfesorForm(request.POST)
+    article_form = ArticlesForm(model_to_dict(article))
     context_dict = {
-        'profesor_form': profesor_form
+        'article': article,
+        'article_form': article_form,
     }
     return render(
         request=request,
         context=context_dict,
-        template_name='app_coder/profesor_django_forms.html'
+        template_name='app_coder/article_form.html'
     )
 
 
 @login_required
-def update_profesor(request, pk: int):
-    profesor = Profesor.objects.get(pk=pk)
-
+def delete_article(request, pk: int):
+    article = Articles.objects.get(pk=pk)
     if request.method == 'POST':
-        profesor_form = ProfesorForm(request.POST)
-        if profesor_form.is_valid():
-            data = profesor_form.cleaned_data
-            profesor.name = data['name']
-            profesor.last_name = data['last_name']
-            profesor.email = data['email']
-            profesor.profession = data['profession']
-            profesor.save()
+        article.delete()
 
-            profesors = Profesor.objects.all()
-            context_dict = {
-                'profesors': profesors
-            }
-            return render(
-                request=request,
-                context=context_dict,
-                template_name="app_coder/profesors.html"
-            )
-
-    profesor_form = ProfesorForm(model_to_dict(profesor))
-    context_dict = {
-        'profesor': profesor,
-        'profesor_form': profesor_form,
-    }
-    return render(
-        request=request,
-        context=context_dict,
-        template_name='app_coder/profesor_form.html'
-    )
-
-
-@login_required
-def delete_profesor(request, pk: int):
-    profesor = Profesor.objects.get(pk=pk)
-    if request.method == 'POST':
-        profesor.delete()
-
-        profesors = Profesor.objects.all()
+        articles = Articles.objects.all()
         context_dict = {
-            'profesors': profesors
+            'articles': articles
         }
         return render(
             request=request,
             context=context_dict,
-            template_name="app_coder/profesors.html"
+            template_name="app_coder/articles.html"
         )
 
     context_dict = {
-        'profesor': profesor,
+        'article': article,
     }
     return render(
         request=request,
         context=context_dict,
-        template_name='app_coder/profesor_confirm_delete.html'
+        template_name='app_coder/article_confirm_delete.html'
     )
 
-
-def homework_forms_django(request):
+@login_required
+def comment_forms_django(request):
     if request.method == 'POST':
-        homework_form = HomeworkForm(request.POST)
-        if homework_form.is_valid():
-            data = homework_form.cleaned_data
-            homework = Homework(
-                name=data['name'],
-                due_date=data['due_date'],
-                is_delivered=data['is_delivered'],
-            )
-            homework.save()
+        comment_form = CommentsForm(request.POST,comment_id)
+        if comment_form.is_valid():
+            data = comment_form.cleaned_data
+            
+            comments = Comments(data = data['data'],due_date = date.today(), comment_by = request.user.id,article = article_id)
+            comments.save()
 
-            homeworks = Homework.objects.all()
+            comments = Comments.objects.all()
             context_dict = {
-                'homeworks': homeworks
+                'comments': comments
             }
             return render(
                 request=request,
                 context=context_dict,
-                template_name="app_coder/homeworks.html"
+                template_name="app_coder/comments.html"
             )
 
-    homework_form = HomeworkForm(request.POST)
+    comment_form = CommentsForm(request.POST)
     context_dict = {
-        'homework_form': homework_form
+        'comment_form': comment_form
     }
     return render(
         request=request,
         context=context_dict,
-        template_name='app_coder/homework_django_forms.html'
+        template_name='app_coder/comment_django_forms.html'
+    )
+      
+@login_required
+def update_comment(request, pk: int):
+    comments = Comments.objects.get(pk=pk)
+
+    if request.method == 'POST':
+        comment_form = CommentsForm(request.POST)
+        if comment_form.is_valid():
+            data = comment_form.cleaned_data
+            comments.save()
+
+            comments = Comments.objects.all()
+            context_dict = {
+                'comments': comments
+            }
+            return render(
+                request=request,
+                context=context_dict,
+                template_name="app_coder/comments.html"
+            )
+
+    comment_form = CommentsForm(model_to_dict(comments))
+    context_dict = {
+        'comments': comments,
+        'comment_form': comment_form,
+    }
+    return render(
+        request=request,
+        context=context_dict,
+        template_name='app_coder/comment_form.html'
+    )
+
+
+@login_required
+def delete_comment(request, pk: int):
+    comment = Comments.objects.get(pk=pk)
+    if request.method == 'POST':
+        comments.delete()
+
+        comments = Comments.objects.all()
+        context_dict = {
+            'comments': comments
+        }
+        return render(
+            request=request,
+            context=context_dict,
+            template_name="app_coder/comments.html"
+        )
+
+    context_dict = {
+        'comment': comment,
+    }
+    return render(
+        request=request,
+        context=context_dict,
+        template_name='app_coder/comment_confirm_delete.html'
+    )
+
+def comment_forms_django(request):
+    if request.method == 'POST':
+        comments_form = CommentsForm(request.POST)
+        if comments_form.is_valid():
+            data = comments_form.cleaned_data
+            comment = Comments(
+                name=data['name'],
+                due_date=data['due_date'],
+                is_delivered=data['is_delivered'],
+            )
+            comment.save()
+
+            comments = Comments.objects.all()
+            context_dict = {
+                'comments': comments
+            }
+            return render(
+                request=request,
+                context=context_dict,
+                template_name="app_coder/comments.html"
+            )
+
+    comments_form = CommentsForm(request.POST)
+    context_dict = {
+        'comments_form': comments_form
+    }
+    return render(
+        request=request,
+        context=context_dict,
+        template_name='app_coder/comment_django_forms.html'
     )
 
 
@@ -278,11 +297,11 @@ def search(request):
     context_dict = {**avatar_ctx}
     if request.GET['all_search']:
         search_param = request.GET['all_search']
-        query = Q(name__contains=search_param)
-        query.add(Q(code__contains=search_param), Q.OR)
-        courses = Course.objects.filter(query)
+        query = Q(title__contains=search_param)
+        query.add(Q(sub_title__contains=search_param), Q.OR)
+        articles = Articles.objects.filter(query)
         context_dict.update({
-            'courses': courses
+            'articles': articles
         })
     return render(
         request=request,
@@ -295,38 +314,66 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.template import loader
 
 
-class CourseListView(ListView):
-    model = Course
-    template_name = "app_coder/course_list.html"
+class ArticlesListView(ListView):
+    model = Articles
+    template_name = "app_coder/articles_list.html"
 
 
-class CourseDetailView(DetailView):
-    model = Course
-    template_name = "app_coder/course_detail.html"
+def ArticlesDetailView(request,pk):
+
+    article = Articles.objects.get(id=pk)
+    
+    comments = list(Comments.objects.filter(article_id=pk).values_list('data'))
+    context_dict = {
+        'article': article,
+        'comments':comments,
+    }
+
+    return render(
+        request=request,
+        context=context_dict,
+        template_name="app_coder/articles_detail.html"
+    )
+    
 
 
-class CourseCreateView(LoginRequiredMixin, CreateView):
-    model = Course
+class ArticlesCreateView(LoginRequiredMixin, CreateView):
+    model = Articles
     # template_name = "app_coder/course_form.html"
     # success_url = "/app_coder/courses"
-    success_url = reverse_lazy('app_coder:course-list')
-    fields = ['name', 'code']
+    success_url = reverse_lazy('app_coder:articles-list')
+    fields = ['title', 'sub_title', 'text', 'image', ]
 
 
-class CourseUpdateView(LoginRequiredMixin, UpdateView):
-    model = Course
+
+class CommentsCreateView(LoginRequiredMixin,CreateView):
+    model = Comments
+
+    template_name = "app_coder/coments_create.html"
+
+    success_url = reverse_lazy('app_coder:articles-list')
+    fields = ['data']
+
+
+    def form_valid(self, form):
+        form.instance.article = Articles.objects.get(id=self.kwargs.get('pk'))
+        return super(CommentsCreateView, self).form_valid(form)
+
+class ArticlesUpdateView(LoginRequiredMixin, UpdateView):
+    model = Articles
     # template_name = "app_coder/course_form.html"
     # success_url = "/app_coder/courses"
-    success_url = reverse_lazy('app_coder:course-list')
-    fields = ['name', 'code']
+    success_url = reverse_lazy('app_coder:articles-list')
+    fields = ['title', 'sub_title','text', 'image']
 
 
-class CourseDeleteView(LoginRequiredMixin, DeleteView):
-    model = Course
+class ArticlesDeleteView(LoginRequiredMixin, DeleteView):
+    model = Articles
     # success_url = "/app_coder/courses"
-    success_url = reverse_lazy('app_coder:course-list')
+    success_url = reverse_lazy('app_coder:articles-list')
 
 
 from django.shortcuts import redirect
@@ -431,4 +478,11 @@ def avatar_load(request):
         request=request,
         context={"form": form},
         template_name="app_coder/avatar_form.html",
+    )
+
+def about_me (request): 
+    return render(
+        request=request,
+        context= {},
+        template_name="app_coder/about_me.html"
     )

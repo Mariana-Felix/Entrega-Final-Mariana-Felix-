@@ -2,13 +2,13 @@
 {% load static %}
 {% block app_coder_content %}
 
-<h2>Formulario para guardar/editar curso</h2>
+<h2>Formulario para guardar/editar articulo</h2>
 <hr></hr>
 
 <form action="" method="POST">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" class="btn btn-primary" value="Guardar curso" />
+    <input type="submit" class="btn btn-primary" value="Guardar articulo" />
 </form>
 
 {% endblock %}

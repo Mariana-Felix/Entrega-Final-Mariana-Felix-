@@ -1,13 +1,9 @@
 from django.contrib import admin
 
-from app_coder.models import Course, Student, Profesor, Homework, Avatar
+from app_coder.models import Articles, Comments, Avatar
 
-admin.site.register(Course)
+admin.site.register(Articles)
 
-admin.site.register(Student)
-
-admin.site.register(Profesor)
-
-admin.site.register(Homework)
+admin.site.register(Comments)
 
 admin.site.register(Avatar)

@@ -2,15 +2,15 @@
 {% load static %}
 {% block app_coder_content %}
 
-<h2>Eliminar Profesor</h2>
+<h2>Eliminar Articulo </Article></h2>
 <hr></hr>
 
-<p>Estás seguro de eliminar el profesor: {{ profesor.name }}?</p>
+<p>¿Estás seguro de eliminar el Articulo: <b>{{ object.title }}</b> - {{object.sub_title}} ?</p>
 
 <form action="" method="POST">
     {% csrf_token %}
     <input class="btn2 btn-warning" type="submit" value="Si, eliminar.">
-    <a class="btn2 btn-primary" href="{% url 'app_coder:Profesors' %}" >Cancelar</a>
+    <a class="btn2 btn-primary" href="{% url 'app_coder:articles-list' %}" >Cancelar</a>
 </form>
 
 {% endblock %}

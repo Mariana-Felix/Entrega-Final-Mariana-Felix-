@@ -1,0 +1,17 @@
+{% extends "app_coder/index.html" %}
+{% load static %}
+{% block app_coder_content %}
+
+<h2>Lista de Articulos</h2>
+<a class="card_custom" href="{% url 'app_coder:ArticlesDjangoForms' %}">Crear nuevo Articulo</a>
+<hr></hr>
+<ul>
+    {% for article in articles %}
+        <li>
+            Title: {{article.title}}
+            -- Sub_title: {{article.sub_title}}
+        </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

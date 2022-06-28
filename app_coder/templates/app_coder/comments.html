@@ -1,0 +1,22 @@
+{% extends "app_coder/index.html" %}
+{% load static %}
+{% block app_coder_content %}
+
+<h2>Lista de Comentarios</h2>
+<a class="card_custom" href="{% url 'app_coder:homework-add' %}">Crear nuevo comentario</a>
+<hr></hr>
+<ul>
+    {% for comment in comments %}
+        <li>
+            Comentario: {{comment.name}}
+           
+                {% if comment.is_delivered %}
+                    Si
+                {% else %}
+                    No
+                {% endif%}
+        </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

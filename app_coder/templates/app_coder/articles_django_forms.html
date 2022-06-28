@@ -2,17 +2,17 @@
 {% load static %}
 {% block app_coder_content %}
 
-<h2>Formulario para insersión de un nuevo curso</h2>
+<h2>Formulario para insersión de un nuevo articulo</h2>
 <hr></hr>
 
 <form action="" method="POST">
     {% csrf_token %}
 
     <table>
-        {{ course_form.as_table }}
+        {{ article_form.as_table }}
     </table>
 
-    <input type="submit" class="btn btn-primary" value="Crear curso" />
+    <input type="submit" class="btn btn-primary" value="Crear articulo" />
 
 </form>
 

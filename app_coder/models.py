@@ -1,42 +1,22 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-
-class Course(models.Model):
-    name = models.CharField(max_length=40)
-    code = models.IntegerField()
-
-    def __str__(self):
-        return f'{self.name} course --'
-
-
-class Student(models.Model):
-    name = models.CharField(max_length=40)
-    last_name = models.CharField(max_length=40)
-    email = models.EmailField()
+class Articles(models.Model):
+    title = models.CharField(max_length=40)
+    sub_title = models.CharField(max_length=40)
+    text = models.TextField()
+    image = models.ImageField(upload_to='articles', null=True, blank=True)
 
     def __str__(self):
-        return f'Nombre del Estudiante: {self.name} {self.last_name} -- e-mail: {self.email}'
+        return f'{self.title} -- {self.sub_title}'
 
-
-class Profesor(models.Model):
-    name = models.CharField(max_length=40)
-    last_name = models.CharField(max_length=40)
-    email = models.EmailField()
-    profession = models.CharField(max_length=40)
+class Comments(models.Model):
+    data = models.TextField()
+    due_date = models.DateTimeField(auto_now_add=True, null=False)
+    article = models.ForeignKey (Articles, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'Nombre del Profesor: {self.name} {self.last_name} --'
-
-
-class Homework(models.Model):
-    name = models.CharField(max_length=40)
-    due_date = models.DateField()
-    is_delivered = models.BooleanField()
-
-    def __str__(self):
-        is_delivered = 'Si' if self.is_delivered else 'No'
-        return f'Nombre de la Entrega: {self.name} -- Fecha de entrega: {self.due_date} -- Entregado: {is_delivered}'
+        return f'Comentario: {self.data} -- Fecha del comentario: {self.due_date}'
 
 
 class Avatar(models.Model):

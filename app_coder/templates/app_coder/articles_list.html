@@ -2,34 +2,13 @@
 {% load static %}
 {% block app_coder_content %}
 
-
+<h2>Lista de Articulos</h2>
 {% if user.is_authenticated %}
-<div class="text-center">
-    <h2>Bienvenido {{ user.username }}</h2>
-    <h3><a style="color: rgb(3, 36, 184)" href="{% url 'app_coder:avatar-load' %}">Cambiar Avatar</a></h3>
-    <img height="160px" src="{{url}}" alt="">
-</div>
+<a class="card_custom" href="{% url 'app_coder:articles-add' %}">Crear nuevo Articulo</a>
 {% endif %}
-<h2>Buscador de articulos</h2>
-<hr>
-</hr>
-
-<form action="/app_coder/search" method="GET">
-    <div>
-        <input type="text" name="all_search" id="course_code_or_name" placeholder="Busqueda general">
-        <input type="submit" value="Buscar">
-    </div>
-
-</form>
-
-<hr>
-</hr>
-
-<h1 class="mb-5">Este es nuestro Blog <br> Django-CoderHouse</h1>
-{% if articles %}
-
+<hr></hr>
 <ul>
-    {% for article in articles %}
+    {% for article in articles_list %}
     <li>
         {{article}}
         (
@@ -50,6 +29,5 @@
     </li>
     {% endfor %}
 </ul>
-{% endif %}
 
 {% endblock %}
